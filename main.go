@@ -1,10 +1,8 @@
-package main 
-
-import(
-	"fmt"
-)
+package main
 
 func main() {
-	fmt.Println("go-money")
-}
 
+	server := newAPIServer(":3000")
+	server.Run()
+
+}
