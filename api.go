@@ -9,10 +9,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//writes JSON response to the http.ResponseWriter with the specified status code.
+// writes JSON response to the http.ResponseWriter with the specified status code.
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Header().Set("content-type", "application/json")
 	return json.NewEncoder(w).Encode(v)
 }
 
@@ -50,8 +50,8 @@ func (s *APIServer) Run() {
 	router := mux.NewRouter()
 
 	// Define routes and link them to corresponding handler functions.
-	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount)) 
-	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleGetAccount))
+	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
+	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleGetAccount))
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleCreateAccount))
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleDeleteAccount))
 	router.HandleFunc("/account/transfer", makeHTTPHandleFunc(s.handleTransferAccount))
@@ -81,7 +81,9 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 // handleGetAccount handles GET requests to /account endpoint.
 func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) error {
 	//handle GET request to get specific acc info
-	return nil
+	id := mux.Vars(r)["id"]
+	fmt.Println(id)
+	return WriteJSON(w, http.StatusOK, &Account{})
 }
 
 // handleCreateAccount handles POST requests to /account endpoint.
