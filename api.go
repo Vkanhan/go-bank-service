@@ -65,16 +65,16 @@ func (s *APIServer) Run() {
 // handleAccount handles requests to /account endpoint.
 func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error {
 	// Handle different HTTP methods for /account endpoint.
-	if r.Method == "GET" {
+	switch r.Method {
+	case "GET":
 		return s.handleGetAccount(w, r)
-	}
-	if r.Method == "POST" {
+	case "POST":
 		return s.handleCreateAccount(w, r)
-	}
-	if r.Method == "DELETE" {
+	case "DELETE":
 		return s.handleDeleteAccount(w, r)
+	default:
+		return fmt.Errorf("method not allowed: %s", r.Method)
 	}
-	return fmt.Errorf("methods not allowed %s", r.Method)
 
 }
 
