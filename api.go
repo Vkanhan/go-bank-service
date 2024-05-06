@@ -9,29 +9,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// writes JSON response to the http.ResponseWriter with the specified status code.
-func WriteJSON(w http.ResponseWriter, status int, v any) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	return json.NewEncoder(w).Encode(v)
-}
-
-// apiFunc is a function signature for handler functions.
-type apiFunc func(http.ResponseWriter, *http.Request) error
-
-// ApiError represents the structure for API error responses.
-type ApiError struct {
-	Error string
-}
-
-// makeHTTPHandleFunc is a decorator to convert an apiFunc to an http.HandlerFunc
-func makeHTTPHandleFunc(f apiFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := f(w, r); err != nil {
-			WriteJSON(w, http.StatusBadRequest, ApiError{Error: err.Error()})
-		}
-	}
-}
 
 // APIServer represents the JSON API server.
 type APIServer struct {
@@ -102,4 +79,29 @@ func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) 
 func (s *APIServer) handleTransferAccount(w http.ResponseWriter, r *http.Request) error {
 	//handle POST request to transfer func btw accounts
 	return nil
+}
+
+
+// writes JSON response to the http.ResponseWriter with the specified status code.
+func WriteJSON(w http.ResponseWriter, status int, v any) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	return json.NewEncoder(w).Encode(v)
+}
+
+// apiFunc is a function signature for handler functions.
+type apiFunc func(http.ResponseWriter, *http.Request) error
+
+// ApiError represents the structure for API error responses.
+type ApiError struct {
+	Error string
+}
+
+// makeHTTPHandleFunc is a decorator to convert an apiFunc to an http.HandlerFunc
+func makeHTTPHandleFunc(f apiFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := f(w, r); err != nil {
+			WriteJSON(w, http.StatusBadRequest, ApiError{Error: err.Error()})
+		}
+	}
 }
