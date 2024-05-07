@@ -9,16 +9,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
 // APIServer represents the JSON API server.
 type APIServer struct {
 	listenAddr string
+	store      Storage
 }
 
 // newAPIServer creates a new instance of APIServer with the specified listen address.
-func newAPIServer(listenAddr string) *APIServer {
+func newAPIServer(listenAddr string, store Storage) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
+		store:      store,
 	}
 }
 
@@ -80,7 +81,6 @@ func (s *APIServer) handleTransferAccount(w http.ResponseWriter, r *http.Request
 	//handle POST request to transfer func btw accounts
 	return nil
 }
-
 
 // writes JSON response to the http.ResponseWriter with the specified status code.
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
