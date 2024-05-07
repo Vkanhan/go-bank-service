@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// CreateAccountRequest represents a request to create a new account.
 type CreateAccountRequest struct {
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
