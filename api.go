@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -70,9 +71,18 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) err
 // handleGetAccountByID handles GET requests to /account/{id} endpoint.
 func (s *APIServer) handleGetAccountByID(w http.ResponseWriter, r *http.Request) error {
 	//handle GET request to get specific acc info
-	id := mux.Vars(r)["id"]
-	fmt.Println(id)
-	return WriteJSON(w, http.StatusOK, &Account{})
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return fmt.Errorf("invalid id given %s", idStr)
+	}
+	
+	account, err := s.store.GetAccountByID(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, account)
 }
 
 // handleCreateAccount handles POST requests to /account endpoint.
@@ -115,7 +125,7 @@ type apiFunc func(http.ResponseWriter, *http.Request) error
 
 // ApiError represents the structure for API error responses.
 type ApiError struct {
-	Error string
+	Error string `json:"error"`
 }
 
 // makeHTTPHandleFunc is a decorator to convert an apiFunc to an http.HandlerFunc
