@@ -15,7 +15,7 @@ type APIServer struct {
 	store      Storage
 }
 
-// newAPIServer creates a new instance of APIServer with the specified listen address.
+// newAPIServer creates a new instance of APIServer with the specified listen address and storage interface.
 func newAPIServer(listenAddr string, store Storage) *APIServer {
 	return &APIServer{
 		listenAddr: listenAddr,
@@ -29,7 +29,7 @@ func (s *APIServer) Run() {
 
 	// Define routes and link them to corresponding handler functions.
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
-	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleGetAccount))
+	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleGetAccountByID))
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleCreateAccount))
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleDeleteAccount))
 	router.HandleFunc("/account/transfer", makeHTTPHandleFunc(s.handleTransferAccount))
@@ -58,6 +58,17 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 
 // handleGetAccount handles GET requests to /account endpoint.
 func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) error {
+	accounts, err := s.store.GetAccounts()
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, accounts)
+
+}
+
+// handleGetAccountByID handles GET requests to /account/{id} endpoint.
+func (s *APIServer) handleGetAccountByID(w http.ResponseWriter, r *http.Request) error {
 	//handle GET request to get specific acc info
 	id := mux.Vars(r)["id"]
 	fmt.Println(id)
