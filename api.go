@@ -67,7 +67,17 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) err
 // handleCreateAccount handles POST requests to /account endpoint.
 func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) error {
 	//handle POST request to create new acc
-	return nil
+	CreateAccountReq := new(CreateAccountRequest)
+	if err := json.NewDecoder(r.Body).Decode(CreateAccountReq); err != nil {
+		return err
+	}
+
+	account := NewAccount(CreateAccountReq.FirstName, CreateAccountReq.LastName)
+	if err := s.store.CreateAccount(account); err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, account)
 }
 
 // handleDeleteAccount handles DELETE requests to /account endpoint.
