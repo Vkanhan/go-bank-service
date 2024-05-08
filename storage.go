@@ -95,40 +95,56 @@ func (s *PostgresStore) DeleteAccount(id int) error {
 
 // GetAccountByID retrieves an account from the PostgreSQL database based on the given ID.
 func (s *PostgresStore) GetAccountByID(id int) (*Account, error) {
-	return nil, nil
-}
-
-func (s *PostgresStore) GetAccounts() ([]*Account, error) {
-	// Query the database to get rows of accounts
-	rows, err := s.db.Query("SELECT * FROM account")
+	rows, err := s.db.Query("SELECT * FROM account WHERE id = $1", id)
 	if err != nil {
 		return nil, err
 	}
 
-	// Initialize a slice to hold the retrieved accounts
-	accounts := []*Account{}
-
-	// Iterate over the rows
 	for rows.Next() {
-		// Create a new Account object for each row
-		account := new(Account)
-
-		// Scan the values from the current row into the Account object fields
-		err := rows.Scan(
-			&account.ID,
-			&account.FirstName,
-			&account.LastName,
-			&account.Number,
-			&account.Balance,
-			&account.CreatedAt,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-		 // Append the scanned account to the accounts slice
-		accounts = append(accounts, account)
+		return s.scanIntoAccounts(rows)
 	}
-	// Return the slice of retrieved accounts
-	return accounts, nil
+
+	return nil, fmt.Errorf("account %d not found", id)
+}
+
+func (s *PostgresStore) GetAccounts() ([]*Account, error) {
+    // Query the database to get rows of accounts
+    rows, err := s.db.Query("SELECT * FROM account")
+    if err != nil {
+        return nil, err
+    }
+
+    // Initialize a slice to hold the retrieved accounts
+    accounts := []*Account{}
+
+    // Iterate over the rows
+    for rows.Next() {
+        // Corrected function invocation
+        account, err := s.scanIntoAccounts(rows)
+        if err != nil {
+            return nil, err
+        }
+
+        // Append the scanned account to the accounts slice
+        accounts = append(accounts, account)
+    }
+    // Return the slice of retrieved accounts
+    return accounts, nil
+}
+
+func (s *PostgresStore) scanIntoAccounts(rows *sql.Rows) (*Account, error) {
+    // Create a new Account object for each row
+    account := new(Account)
+
+    // Scan the values from the current row into the Account object fields
+    err := rows.Scan(
+        &account.ID,
+        &account.FirstName,
+        &account.LastName,
+        &account.Number,
+        &account.Balance,
+        &account.CreatedAt,
+    )
+
+    return account, err
 }
