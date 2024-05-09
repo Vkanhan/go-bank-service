@@ -33,7 +33,7 @@ func (s *APIServer) Run() {
 	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleGetAccountByID))
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleCreateAccount))
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleDeleteAccount))
-	router.HandleFunc("/account/transfer", makeHTTPHandleFunc(s.handleTransferAccount))
+	router.HandleFunc("/transfer", makeHTTPHandleFunc(s.handleTransfer))
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
@@ -49,8 +49,6 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 		return s.handleGetAccount(w, r)
 	case "POST":
 		return s.handleCreateAccount(w, r)
-	case "DELETE":
-		return s.handleDeleteAccount(w, r)
 	default:
 		return fmt.Errorf("method not allowed: %s", r.Method)
 	}
@@ -71,18 +69,26 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) err
 // handleGetAccountByID handles GET requests to /account/{id} endpoint.
 func (s *APIServer) handleGetAccountByID(w http.ResponseWriter, r *http.Request) error {
 	//handle GET request to get specific acc info
-	idStr := mux.Vars(r)["id"]
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		return fmt.Errorf("invalid id given %s", idStr)
-	}
-	
-	account, err := s.store.GetAccountByID(id)
-	if err != nil {
-		return err
+	if r.Method == "GET" {
+		id, err := getID(r)
+		if err != nil {
+			return err
+		}
+
+		account, err := s.store.GetAccountByID(id)
+		if err != nil {
+			return err
+		}
+
+		return WriteJSON(w, http.StatusOK, account)
+
 	}
 
-	return WriteJSON(w, http.StatusOK, account)
+	if r.Method == "DELETE" {
+		return s.handleDeleteAccount(w, r)
+	}
+
+	return fmt.Errorf("method not allowed %s", r.Method)
 }
 
 // handleCreateAccount handles POST requests to /account endpoint.
@@ -104,13 +110,26 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 // handleDeleteAccount handles DELETE requests to /account endpoint.
 func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) error {
 	//handle DELETE request to delete an acc
-	return nil
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	if err := s.store.DeleteAccount((id)); err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, map[string]int{"deleted": id})
 }
 
 // handleTransferAccount handles POST requests to /account/transfer endpoint.
-func (s *APIServer) handleTransferAccount(w http.ResponseWriter, r *http.Request) error {
+func (s *APIServer) handleTransfer(w http.ResponseWriter, r *http.Request) error {
 	//handle POST request to transfer func btw accounts
-	return nil
+	transferRequest := new(TransferRequest)
+	if err := json.NewDecoder(r.Body).Decode(transferRequest); err != nil {
+		return err
+	}
+	defer r.Body.Close()
+	return WriteJSON(w, http.StatusOK, transferRequest)
 }
 
 // writes JSON response to the http.ResponseWriter with the specified status code.
@@ -135,4 +154,14 @@ func makeHTTPHandleFunc(f apiFunc) http.HandlerFunc {
 			WriteJSON(w, http.StatusBadRequest, ApiError{Error: err.Error()})
 		}
 	}
+}
+
+func getID(r *http.Request) (int, error) {
+	idStr := mux.Vars(r)["id"]
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return id, fmt.Errorf("invalid id given %s", idStr)
+	}
+	return id, nil
+
 }
