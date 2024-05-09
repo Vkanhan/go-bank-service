@@ -90,7 +90,8 @@ func (s *PostgresStore) UpdateAccount(*Account) error {
 
 // DeleteAccount deletes an account from the PostgreSQL database based on the given ID.
 func (s *PostgresStore) DeleteAccount(id int) error {
-	return nil
+	_, err := s.db.Query("DELETE FROM account WHERE id = $1", id)
+	return err
 }
 
 // GetAccountByID retrieves an account from the PostgreSQL database based on the given ID.
