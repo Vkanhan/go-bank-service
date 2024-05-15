@@ -35,8 +35,6 @@ func (s *APIServer) Run() {
 	router.HandleFunc("/login", makeHTTPHandleFunc(s.handleLogin))
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
 	router.HandleFunc("/account/{id}", WithJWTAuth(makeHTTPHandleFunc(s.handleGetAccountByID), s.store))
-	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleCreateAccount))
-	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleDeleteAccount))
 	router.HandleFunc("/transfer", makeHTTPHandleFunc(s.handleTransfer))
 
 	log.Println("JSON API server running on port: ", s.listenAddr)
@@ -45,7 +43,7 @@ func (s *APIServer) Run() {
 	http.ListenAndServe(s.listenAddr, router)
 }
 
-
+//handleLogin handles the login function
 func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 	// Only allow POST requests for authentication.
 	if r.Method != "POST" {
@@ -96,7 +94,7 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request) error 
 }
 
 // handleGetAccount handles GET requests to /account endpoint.
-func (s *APIServer) handleGetAccount(w http.ResponseWriter, _ *http.Request) error {
+func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) error {
 	accounts, err := s.store.GetAccounts()
 	if err != nil {
 		return err
@@ -280,7 +278,7 @@ func validateJWT(tokenString string) (*jwt.Token, error) {
 	secret := os.Getenv("JWT_SECRET")
 	// Parse and validate the JWT token using the secret key
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Don't forget to validate the alg is what you expect:
+		 // Ensure that the signing method is as expected
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
