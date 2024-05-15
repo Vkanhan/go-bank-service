@@ -9,8 +9,8 @@ import (
 
 // LoginResponse represents the response sent back to the client after a successful login.
 type LoginResponse struct {
-	Number int64  `json:"number"` // Unique identifier for the account
-	Token  string `json:"token"` // Authentication token for subsequent requests
+	Number int64  `json:"number"`
+	Token  string `json:"token"` 
 }
 
 type LoginRequest struct {
