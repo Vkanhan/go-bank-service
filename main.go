@@ -6,28 +6,35 @@ import (
 	"log"
 )
 
+// seedAccount creates a new account using the provided store and user details, then prints the account number.
 func seedAccount(store Storage, firstName, lastName, password string) *Account {
+	// Create a new account with the given first name, last name, and password.
 	account, err := NewAccount(firstName, lastName, password)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// Store the created account in the database.
 	if err := store.CreateAccount(account); err != nil {
 		log.Fatal(err)
 	}
 
+	// Print the new account number.
 	fmt.Println("new account => ", account.Number)
 
+	// Return the created account.
 	return account
 
 }
 
+// seedAccounts seeds the database with predefined accounts.
 func seedAccounts(s Storage) {
 	seedAccount(s, "albert", "einstein", "travel")
 }
 
 func main() {
 
+	// Define a command-line flag for seeding the database.
 	seed := flag.Bool("seed", false, "seed the db")
 	flag.Parse()
 
@@ -42,6 +49,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Check if the seed flag is set to true.
 	if *seed {
 		fmt.Println("seeding the database")
 
