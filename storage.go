@@ -41,7 +41,10 @@ func NewPostgresStore() (*PostgresStore, error) {
 
 // Init initializes the PostgreSQL database by creating the account table.
 func (s *PostgresStore) Init() error {
-	return s.CreateAccountTable()
+	if err := s.CreateAccountTable(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // CreateAccountTable creates the account table if it does not exist already.
